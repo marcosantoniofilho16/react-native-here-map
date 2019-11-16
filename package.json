@@ -1,0 +1,33 @@
+{
+  "name": "react-native-here-map",
+  "title": "React Native Here Map",
+  "version": "1.0.0",
+  "description": "A react native module to display HERE maps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcosantoniofilho16/react-native-here-map.git",
+    "baseUrl": "https://github.com/marcosantoniofilho16/react-native-here-map"
+  },
+  "keywords": [
+    "react-native"
+  ],
+  "author": {
+    "name": "Marcos",
+    "email": "marcosantonio.filho16@gmail.com"
+  },
+  "license": "MIT",
+  "licenseFilename": "LICENSE",
+  "readmeFilename": "README.md",
+  "peerDependencies": {
+    "react": "^16.8.1",
+    "react-native": ">=0.59.0-rc.0 <1.0.x"
+  },
+  "devDependencies": {
+    "react": "^16.8.3",
+    "react-native": "^0.59.10"
+  }
+}
