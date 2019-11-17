@@ -5,13 +5,45 @@ import {
   StyleSheet,
   NativeModules,
   requireNativeComponent,
-  findNodeHandle
+  findNodeHandle,
+  NativeEventEmitter
 } from 'react-native'
 
 const UIManager = NativeModules.UIManager
 const HereMapView = requireNativeComponent("HereMapView") 
 
 export default class MapView extends Component {
+
+  static defaultProps = {
+    onLoad: () => {},
+    onPan: () => {},
+    onRotate: () => {},
+    onReCentralize: () => {}
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      isLoaded: false
+    }
+  }
+
+  componentDidMount() {
+    const eventEmitter = new NativeEventEmitter(HereMapView);
+    eventEmitter.addListener('onLoad', (event) => {
+       this.setState(event)
+       this.props.onLoad(event)
+    })
+    eventEmitter.addListener('onPan', (event) => {
+      this.props.onPan(event)
+    })
+    eventEmitter.addListener('onRotate', (event) => {
+      this.props.onRotate(event)
+    })
+    eventEmitter.addListener('onReCentralize', (event) => {
+      this.props.onReCentralize(event)
+    })
+  }
 
   render() {
     const { style, 
@@ -23,6 +55,7 @@ export default class MapView extends Component {
             location, 
             children 
           } = this.props
+    const { isLoaded } = this.state
 
     return ( 
       <>
@@ -33,7 +66,7 @@ export default class MapView extends Component {
                     bearing={bearing}
                     route={route}
                     tilt={tilt} />
-        { children }
+        { isLoaded ? children : undefined }
       </>
       
     )
@@ -81,6 +114,13 @@ export default class MapView extends Component {
       [location])
   }
 
+  setCenter(location) {
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this),
+      UIManager.HereMapView.Commands.setCenter,
+      [location])
+  }
+
   animateToCoordinate(coordinate) {
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this),
@@ -93,6 +133,13 @@ export default class MapView extends Component {
       findNodeHandle(this),
       UIManager.HereMapView.Commands.animateToBearing,
       [bearing])
+  }
+
+  centralize() {
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this),
+      UIManager.HereMapView.Commands.centralize,
+      [])
   }
 
 }

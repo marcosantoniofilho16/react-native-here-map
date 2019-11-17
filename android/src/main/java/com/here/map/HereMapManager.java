@@ -27,6 +27,8 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
     private static final int COMMAND_SET_LOCATION = 5;
     private static final int COMMAND_ANIMATE_TO_COORDINATE = 6;
     private static final int COMMAND_ANIMATE_TO_BEARING = 7;
+    private static final int COMMAND_SET_CENTER = 8;
+    private static final int COMMAND_CENTRALIZE = 9;
 
     private static final String TAG = "ReactNative";
 
@@ -52,6 +54,8 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
         commandsMap.put("setLocation", COMMAND_SET_LOCATION);
         commandsMap.put("animateToCoordinate", COMMAND_ANIMATE_TO_COORDINATE);
         commandsMap.put("animateToBearing", COMMAND_ANIMATE_TO_BEARING);
+        commandsMap.put("setCenter", COMMAND_SET_CENTER);
+        commandsMap.put("centralize", COMMAND_CENTRALIZE);
 
         return commandsMap;
     }
@@ -95,11 +99,23 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
             ReadableArray coordinate = args.getArray(0);
             GeoCoordinates geoCoordinates = new GeoCoordinates(coordinate.getDouble(1), coordinate.getDouble(0));
             view.setLocation(geoCoordinates);
-            view.setCenter(geoCoordinates);
+            if (view.isCentralize())
+                view.setCenter(geoCoordinates);
         }
         else if (COMMAND_ANIMATE_TO_BEARING  == commandType) {
             double bearing = args.getDouble(0);
-            view.setBearing(bearing);
+            if (view.isCentralize())
+                view.setBearing(bearing);
+            
+        }
+        else if (COMMAND_SET_CENTER  == commandType) {
+            ReadableArray coordinate = args.getArray(0);
+            GeoCoordinates geoCoordinates = new GeoCoordinates(coordinate.getDouble(1), coordinate.getDouble(0));
+            view.setCenter(geoCoordinates);
+        }
+        else if (COMMAND_CENTRALIZE  == commandType) {
+            view.setCentralize(true);
+            view.setCenter(view.getLocation());
         }
         else {
             throw new IllegalArgumentException(String.format(

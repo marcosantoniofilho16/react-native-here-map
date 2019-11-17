@@ -4,11 +4,20 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.here.map.R;
+import com.here.sdk.core.Angle;
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.GeoPolyline;
+import com.here.sdk.core.Point2D;
 import com.here.sdk.core.errors.InstantiationErrorException;
+import com.here.sdk.gestures.GestureState;
+import com.here.sdk.gestures.PanListener;
+import com.here.sdk.gestures.PinchRotateListener;
 import com.here.sdk.mapviewlite.CameraObserver;
 import com.here.sdk.mapviewlite.CameraUpdate;
 import com.here.sdk.mapviewlite.MapImage;
@@ -35,6 +44,8 @@ public class HereMapView extends MapViewLite {
 
     private GeoCoordinates center = new GeoCoordinates(-4.5607442091831984, -397.76870042961644);
 
+    private GeoCoordinates location;
+
     private double bearing = 0;
 
     private double tilt = 0;
@@ -44,6 +55,8 @@ public class HereMapView extends MapViewLite {
     private MapPolyline mapPolyline;
 
     private MapMarker mapMarker;
+
+    private Boolean isCentralize = true;
 
     public HereMapView(Context context) {
         super(context);
@@ -59,10 +72,77 @@ public class HereMapView extends MapViewLite {
                 this.getCamera().setTilt(tilt);
                 this.getCamera().setZoomLevel(zoomLevel);
                 this.getCamera().addObserver(cameraObserver);
+
+                this.getGestures().setPanListener(panListener);
+                this.getGestures().setPinchRotateListener(pinchRotateListener);
+
+                WritableMap params = Arguments.createMap();
+                params.putBoolean("isLoaded", true);
+                sendEvent("onLoad", params);
             }
         });
 
     }
+
+    private final PinchRotateListener pinchRotateListener = (@NonNull
+                                                                     GestureState state,
+                                                             @NonNull
+                                                                     Point2D pinchOrigin,
+                                                             @NonNull
+                                                                     Point2D rotationOrigin,
+                                                             float twoFingerDistance,
+                                                             @NonNull
+                                                                     Angle rotation) -> {
+
+        GeoCoordinates pinchOriginGeo = this.getCamera().viewToGeoCoordinates(pinchOrigin);
+        GeoCoordinates rotationOriginGeo = this.getCamera().viewToGeoCoordinates(rotationOrigin);
+
+        WritableMap pinchOriginMap = Arguments.createMap();
+        pinchOriginMap.putDouble("latitude", pinchOriginGeo.latitude);
+        pinchOriginMap.putDouble("longitude", pinchOriginGeo.longitude);
+
+        WritableMap rotationOriginMap = Arguments.createMap();
+        rotationOriginMap.putDouble("latitude", rotationOriginGeo.latitude);
+        rotationOriginMap.putDouble("longitude", rotationOriginGeo.longitude);
+
+        WritableMap params = Arguments.createMap();
+        params.putString("state", state.name());
+        params.putMap("pinchOrigin", pinchOriginMap);
+        params.putMap("rotationOrigin", rotationOriginMap);
+        params.putDouble("twoFingerDistance", twoFingerDistance);
+        params.putDouble("rotation", rotation.getDegrees());
+        sendEvent("onRotate", params);
+
+        setCentralize(false);
+    };
+
+    private final PanListener panListener = (@NonNull
+                                                     GestureState state,
+                                             @NonNull
+                                                     Point2D origin,
+                                             @NonNull
+                                                     Point2D translation,
+                                             float velocity) -> {
+        GeoCoordinates originGeo = this.getCamera().viewToGeoCoordinates(origin);
+        GeoCoordinates translationGeo = this.getCamera().viewToGeoCoordinates(translation);
+
+        WritableMap originMap = Arguments.createMap();
+        originMap.putDouble("latitude", originGeo.latitude);
+        originMap.putDouble("longitude", originGeo.longitude);
+
+        WritableMap translationMap = Arguments.createMap();
+        translationMap.putDouble("latitude", translationGeo.latitude);
+        translationMap.putDouble("longitude", translationGeo.longitude);
+
+        WritableMap params = Arguments.createMap();
+        params.putString("state", state.name());
+        params.putMap("origin", originMap);
+        params.putMap("translation", translationMap);
+        params.putDouble("velocity", velocity);
+        sendEvent("onPan", params);
+
+        setCentralize(false);
+    };
 
     private final CameraObserver cameraObserver = (@NonNull CameraUpdate cameraUpdate) -> {
         GeoCoordinates center = cameraUpdate.target;
@@ -98,6 +178,14 @@ public class HereMapView extends MapViewLite {
         MapPolyline mapPolyline = new MapPolyline(geoPolyline, mapPolylineStyle);
 
         return mapPolyline;
+    }
+
+    private void sendEvent(String eventName,
+                           @Nullable WritableMap params) {
+        ReactContext reactContext = (ReactContext) this.getContext();
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName, params);
     }
 
     public GeoCoordinates getCenter() {
@@ -166,5 +254,24 @@ public class HereMapView extends MapViewLite {
 
         MapScene mapScene = this.getMapScene();
         mapScene.addMapMarker(mapMarker);
+
+        this.location = location;
     }
+
+    public Boolean isCentralize() {
+        return isCentralize;
+    }
+
+    public void setCentralize(Boolean centralize) {
+        WritableMap params = Arguments.createMap();
+        params.putBoolean("recentralize", !centralize);
+        sendEvent("onReCentralize", params);    
+
+        this.isCentralize = centralize;
+    }
+
+    public GeoCoordinates getLocation() {
+        return location;
+    }
+
 }
