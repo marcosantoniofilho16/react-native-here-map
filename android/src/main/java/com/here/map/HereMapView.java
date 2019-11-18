@@ -111,7 +111,7 @@ public class HereMapView extends MapViewLite {
         params.putMap("rotationOrigin", rotationOriginMap);
         params.putDouble("twoFingerDistance", twoFingerDistance);
         params.putDouble("rotation", rotation.getDegrees());
-        sendEvent("onRotate", params);
+        // sendEvent("onRotate", params);
 
         setCentralize(false);
     };
@@ -139,7 +139,7 @@ public class HereMapView extends MapViewLite {
         params.putMap("origin", originMap);
         params.putMap("translation", translationMap);
         params.putDouble("velocity", velocity);
-        sendEvent("onPan", params);
+        // sendEvent("onPan", params);
 
         setCentralize(false);
     };

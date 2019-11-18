@@ -18,7 +18,7 @@ export default class MapView extends Component {
     onLoad: () => {},
     onPan: () => {},
     onRotate: () => {},
-    onReCentralize: () => {}
+    onReCentralize: () => {},
   }
 
   constructor(props) {
