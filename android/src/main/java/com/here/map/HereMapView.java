@@ -84,6 +84,12 @@ public class HereMapView extends MapViewLite {
 
     }
 
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy...");
+        super.onDestroy();
+    }
+
     private final PinchRotateListener pinchRotateListener = (@NonNull
                                                                      GestureState state,
                                                              @NonNull

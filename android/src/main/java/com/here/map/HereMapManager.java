@@ -29,6 +29,7 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
     private static final int COMMAND_ANIMATE_TO_BEARING = 7;
     private static final int COMMAND_SET_CENTER = 8;
     private static final int COMMAND_CENTRALIZE = 9;
+    private static final int COMMAND_COMPONENT_WILL_UNMOUNT = 10;
 
     private static final String TAG = "ReactNative";
 
@@ -56,6 +57,7 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
         commandsMap.put("animateToBearing", COMMAND_ANIMATE_TO_BEARING);
         commandsMap.put("setCenter", COMMAND_SET_CENTER);
         commandsMap.put("centralize", COMMAND_CENTRALIZE);
+        commandsMap.put("componentWillUnmount", COMMAND_COMPONENT_WILL_UNMOUNT);
 
         return commandsMap;
     }
@@ -116,6 +118,9 @@ public class HereMapManager extends SimpleViewManager<HereMapView> {
         else if (COMMAND_CENTRALIZE  == commandType) {
             view.setCentralize(true);
             view.setCenter(view.getLocation());
+        }
+        else if (COMMAND_COMPONENT_WILL_UNMOUNT  == commandType) {
+            view.onDestroy();
         }
         else {
             throw new IllegalArgumentException(String.format(

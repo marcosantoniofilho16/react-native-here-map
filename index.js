@@ -45,6 +45,13 @@ export default class MapView extends Component {
     })
   }
 
+  componentWillUnmount() {
+    UIManager.dispatchViewManagerCommand(
+      findNodeHandle(this),
+      UIManager.HereMapView.Commands.componentWillUnmount,
+      [])
+  }
+
   render() {
     const { style, 
             zoom, 
